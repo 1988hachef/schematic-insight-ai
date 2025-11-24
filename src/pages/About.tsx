@@ -13,23 +13,23 @@ const About = () => {
   const features = [
     {
       icon: Brain,
-      title: 'AI-Powered Analysis',
-      description: 'Advanced artificial intelligence for precise schematic understanding',
+      titleKey: 'featureAI',
+      descKey: 'featureAIDesc',
     },
     {
       icon: Zap,
-      title: 'Real-Time Processing',
-      description: 'Instant analysis with visual highlighting and audio explanation',
+      titleKey: 'featureRealtime',
+      descKey: 'featureRealtimeDesc',
     },
     {
       icon: Shield,
-      title: 'Electrical Focus',
-      description: 'Specialized exclusively in electrical schematics validation',
+      titleKey: 'featureFocus',
+      descKey: 'featureFocusDesc',
     },
     {
       icon: Sparkles,
-      title: 'Multi-Format Support',
-      description: 'Camera capture, image upload, and PDF multi-page processing',
+      titleKey: 'featureMulti',
+      descKey: 'featureMultiDesc',
     },
   ];
 
@@ -74,9 +74,17 @@ const About = () => {
           transition={{ delay: 0.2 }}
         >
           <Card className="glass p-8 mb-8 glow-gold">
-            <p className="text-lg leading-relaxed text-center">
+            <h2 className="text-2xl font-bold text-gold mb-4 text-center">
+              {t('appPurpose')}
+            </h2>
+            <p className="text-lg leading-relaxed mb-6">
               {t('aboutDescription')}
             </p>
+            <div className="border-t border-gold/20 pt-6 mt-6">
+              <p className="text-base leading-relaxed text-muted-foreground">
+                {t('appPurposeDesc')}
+              </p>
+            </div>
           </Card>
         </motion.div>
 
@@ -95,13 +103,13 @@ const About = () => {
               transition={{ delay: 0.4 + index * 0.1 }}
             >
               <Card className="glass p-6 hover:glow-blue transition-all duration-300 h-full">
-                <div className="flex items-start space-x-4">
+                <div className="flex items-start space-x-4 rtl:space-x-reverse">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-electric to-blue-glow flex items-center justify-center flex-shrink-0">
                     <feature.icon className="w-6 h-6 text-background" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gold mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                    <h3 className="text-lg font-bold text-gold mb-2">{t(feature.titleKey)}</h3>
+                    <p className="text-muted-foreground">{t(feature.descKey)}</p>
                   </div>
                 </div>
               </Card>

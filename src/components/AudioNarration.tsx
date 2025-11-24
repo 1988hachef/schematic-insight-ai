@@ -22,6 +22,9 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
       return;
     }
 
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
     const newUtterance = new SpeechSynthesisUtterance(text);
     
     // Set language based on current language
@@ -33,8 +36,14 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
     newUtterance.lang = langMap[i18n.language] || 'ar-SA';
     newUtterance.rate = rate;
     newUtterance.volume = isMuted ? 0 : 1;
+    newUtterance.pitch = 1;
 
     newUtterance.onend = () => {
+      setIsPlaying(false);
+    };
+
+    newUtterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
       setIsPlaying(false);
     };
 
@@ -61,15 +70,17 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
     if (!utterance) return;
 
     if (isPlaying) {
-      window.speechSynthesis.pause();
+      window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else {
+      // Cancel any existing speech before starting new
+      window.speechSynthesis.cancel();
+      
+      // Wait a bit for cancel to complete
+      setTimeout(() => {
         window.speechSynthesis.speak(utterance);
-      }
-      setIsPlaying(true);
+        setIsPlaying(true);
+      }, 100);
     }
   };
 

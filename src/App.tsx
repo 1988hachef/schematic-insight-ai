@@ -9,6 +9,7 @@ import './i18n';
 import LanguageSelector from "./pages/LanguageSelector";
 import Home from "./pages/Home";
 import Analyze from "./pages/Analyze";
+import AnalysisDetail from "./pages/AnalysisDetail";
 import About from "./pages/About";
 import Settings from "./pages/Settings";
 import Catalogs from "./pages/Catalogs";
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="/language" element={<LanguageSelector />} />
             <Route path="/home" element={<Home />} />
             <Route path="/analyze" element={<Analyze />} />
+            <Route path="/analysis-detail" element={<AnalysisDetail />} />
             <Route path="/catalogs" element={<Catalogs />} />
             <Route path="/calculators" element={<Calculators />} />
             <Route path="/settings" element={<Settings />} />
