@@ -42,6 +42,12 @@ const resources = {
       skipBackward: 'رجوع 10 ثواني',
       export: 'تصدير PDF',
       
+      // Chat
+      aiChat: 'حوار مع الذكاء الاصطناعي',
+      chat: 'دردشة',
+      startConversation: 'ابدأ محادثة حول المخططات الكهربائية',
+      typeMessage: 'اكتب رسالتك...',
+      
       // Validation
       notElectricalSchematic: 'عذراً، هذه الصورة ليست مخططاً كهربائياً',
       onlyElectricalSchematics: 'أنا متخصص فقط في المخططات الكهربائية',
@@ -114,6 +120,12 @@ const resources = {
       skipBackward: 'Reculer 10 secondes',
       export: 'Exporter PDF',
       
+      // Chat
+      aiChat: 'Conversation avec l\'IA',
+      chat: 'Discussion',
+      startConversation: 'Commencez une conversation sur les schémas électriques',
+      typeMessage: 'Tapez votre message...',
+      
       // Validation
       notElectricalSchematic: 'Désolé, cette image n\'est pas un schéma électrique',
       onlyElectricalSchematics: 'Je suis spécialisé uniquement dans les schémas électriques',
@@ -185,6 +197,12 @@ const resources = {
       skipForward: 'Skip Forward 10s',
       skipBackward: 'Skip Backward 10s',
       export: 'Export PDF',
+      
+      // Chat
+      aiChat: 'AI Chat',
+      chat: 'Chat',
+      startConversation: 'Start a conversation about electrical schematics',
+      typeMessage: 'Type your message...',
       
       // Validation
       notElectricalSchematic: 'Sorry, this image is not an electrical schematic',

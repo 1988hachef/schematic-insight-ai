@@ -88,35 +88,88 @@ serve(async (req) => {
       );
     }
 
-    // Step 2: Analyze the electrical schematic
+    // Step 2: Analyze the electrical schematic with structured format
     const systemPrompts = {
       'ar': `أنت مهندس كهربائي محترف متخصص في تحليل المخططات الكهربائية. 
-قم بتحليل المخطط الكهربائي خطوة بخطوة:
-1. حدد نوع المخطط (تغذية رئيسية، دائرة تحكم، توصيلات، إلخ)
-2. اشرح المكونات الرئيسية وموقعها
-3. وضح تدفق الطاقة والتحكم
-4. حدد أجهزة الحماية المستخدمة
-5. اذكر أي ملاحظات مهمة أو نقاط أمان
 
-اجعل التحليل واضحاً ومفصلاً ومناسباً للمهندسين والفنيين.`,
+قم بتحليل المخطط الكهربائي بشكل منظم ومنسق:
+
+نظم التحليل باستخدام هذا التنسيق:
+
+## 📋 نوع المخطط
+[حدد نوع المخطط]
+
+## 🔌 المكونات الرئيسية
+[اذكر المكونات وموقعها]
+
+## ⚡ تدفق الطاقة والتحكم
+[وضح المسار من المصدر إلى الحمل]
+
+## 🛡️ أجهزة الحماية
+[حدد أجهزة الحماية المستخدمة]
+
+## ⚠️ نقاط مهمة وملاحظات السلامة
+[اذكر أي ملاحظات مهمة]
+
+استخدم:
+- فقرات منفصلة ومنظمة
+- عناوين واضحة مع الرموز التعبيرية
+- نقاط مرقمة أو نقاط تعداد عند الحاجة
+- لغة واضحة ومهنية`,
+
       'fr': `Vous êtes un ingénieur électricien professionnel spécialisé dans l'analyse de schémas électriques.
-Analysez le schéma électrique étape par étape:
-1. Identifiez le type de schéma (alimentation principale, circuit de commande, câblage, etc.)
-2. Expliquez les composants principaux et leur emplacement
-3. Décrivez le flux de puissance et de contrôle
-4. Identifiez les dispositifs de protection utilisés
-5. Mentionnez toute observation importante ou point de sécurité
 
-Rendez l'analyse claire, détaillée et adaptée aux ingénieurs et techniciens.`,
+Analysez le schéma électrique de manière organisée et structurée:
+
+Organisez l'analyse selon ce format:
+
+## 📋 Type de Schéma
+[Identifiez le type]
+
+## 🔌 Composants Principaux
+[Listez les composants et leur emplacement]
+
+## ⚡ Flux de Puissance et Contrôle
+[Décrivez le chemin de la source à la charge]
+
+## 🛡️ Dispositifs de Protection
+[Identifiez les dispositifs de protection]
+
+## ⚠️ Points Importants et Sécurité
+[Mentionnez les observations importantes]
+
+Utilisez:
+- Paragraphes séparés et organisés
+- Titres clairs avec emojis
+- Listes numérotées ou à puces si nécessaire
+- Langage clair et professionnel`,
+
       'en': `You are a professional electrical engineer specialized in analyzing electrical schematics.
-Analyze the electrical schematic step by step:
-1. Identify the type of schematic (main power supply, control circuit, wiring, etc.)
-2. Explain the main components and their location
-3. Describe the power and control flow
-4. Identify the protection devices used
-5. Mention any important observations or safety points
 
-Make the analysis clear, detailed, and suitable for engineers and technicians.`
+Analyze the electrical schematic in an organized and structured way:
+
+Organize the analysis using this format:
+
+## 📋 Schematic Type
+[Identify the type]
+
+## 🔌 Main Components
+[List components and their locations]
+
+## ⚡ Power and Control Flow
+[Describe the path from source to load]
+
+## 🛡️ Protection Devices
+[Identify protection devices used]
+
+## ⚠️ Important Points and Safety
+[Mention important observations]
+
+Use:
+- Separate, organized paragraphs
+- Clear headings with emojis
+- Numbered or bullet lists when needed
+- Clear, professional language`
     };
 
     const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DeveloperSignature } from '@/components/DeveloperSignature';
-import { ArrowLeft, Camera, Upload, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, FileText, AlertCircle, Loader2, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { captureImage, pickImage, pickMultipleImages, pickPDF } from '@/utils/imageCapture';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { ChatDialog } from '@/components/ChatDialog';
+import { AudioNarration } from '@/components/AudioNarration';
 
 const Analyze = () => {
   const { t, i18n } = useTranslation();
@@ -18,6 +20,7 @@ const Analyze = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const analyzeImage = async (imageDataUrl: string) => {
     setIsAnalyzing(true);
@@ -279,9 +282,30 @@ const Analyze = () => {
               )}
               {analysis && (
                 <div className="mt-4">
-                  <h3 className="text-xl font-bold text-gold mb-4">{t('stepByStep')}</h3>
-                  <div className="prose prose-invert max-w-none">
-                    <p className="whitespace-pre-wrap">{analysis}</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-gold">{t('stepByStep')}</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsChatOpen(true)}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      {t('chat') || 'Chat'}
+                    </Button>
+                  </div>
+                  
+                  <AudioNarration text={analysis} />
+
+                  <div className="prose prose-invert max-w-none mt-4">
+                    <div 
+                      className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: analysis
+                          .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-lg mt-4 mb-2">$1</h2>')
+                          .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-base mt-3 mb-2">$1</h3>')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold">$1</strong>')
+                      }}
+                    />
                   </div>
                   <div className="mt-6 flex gap-4">
                     <Button
@@ -332,6 +356,8 @@ const Analyze = () => {
           </Card>
         </motion.div>
       </div>
+
+      <ChatDialog open={isChatOpen} onOpenChange={setIsChatOpen} />
     </div>
   );
 };
