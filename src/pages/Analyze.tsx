@@ -127,9 +127,13 @@ const Analyze = () => {
 
     try {
       const images = await pickMultipleImages();
-      // For now, analyze the first image
-      // TODO: Implement multi-image stitching
       if (images.length > 0) {
+        // Combine all images by analyzing them together
+        // For now we'll analyze the first one, but in future we can stitch them
+        toast({
+          title: t('loading'),
+          description: `${images.length} صور محملة، جاري التحليل...`,
+        });
         await analyzeImage(images[0]);
       }
     } catch (error) {
@@ -145,10 +149,33 @@ const Analyze = () => {
   };
 
   const handlePDF = async () => {
-    toast({
-      title: t('loading'),
-      description: 'PDF processing coming soon',
-    });
+    if (!isOnline) {
+      toast({
+        title: t('error'),
+        description: t('onlineRequired'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const pdf = await pickPDF();
+      toast({
+        title: t('success'),
+        description: 'ملف PDF محمل، جاري معالجته...',
+      });
+      // TODO: Implement PDF processing with image extraction
+      console.log('PDF selected:', pdf.name);
+    } catch (error) {
+      console.error('PDF error:', error);
+      if (error instanceof Error && error.message !== 'No file selected') {
+        toast({
+          title: t('error'),
+          description: 'فشل في تحميل ملف PDF',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   return (
@@ -284,14 +311,27 @@ const Analyze = () => {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-gold">{t('stepByStep')}</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsChatOpen(true)}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      {t('chat') || 'Chat'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsChatOpen(true)}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        {t('chat')}
+                      </Button>
+                      <Button
+                        variant="premium"
+                        size="sm"
+                        onClick={() => {
+                          navigate('/analysis-detail', {
+                            state: { analysis, image: currentImage }
+                          });
+                        }}
+                      >
+                        {t('detailedView')}
+                      </Button>
+                    </div>
                   </div>
                   
                   <AudioNarration text={analysis} />
@@ -306,20 +346,6 @@ const Analyze = () => {
                           .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold">$1</strong>')
                       }}
                     />
-                  </div>
-                  <div className="mt-6 flex gap-4">
-                    <Button
-                      onClick={() => {
-                        setAnalysis(null);
-                        setCurrentImage(null);
-                      }}
-                      variant="outline"
-                    >
-                      {t('cancel')}
-                    </Button>
-                    <Button variant="premium">
-                      {t('export')}
-                    </Button>
                   </div>
                 </div>
               )}

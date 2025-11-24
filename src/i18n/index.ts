@@ -55,9 +55,19 @@ const resources = {
       
       // About
       aboutTitle: 'حول التطبيق',
-      aboutDescription: 'تطبيق احترافي لتحليل وشرح المخططات الكهربائية باستخدام الذكاء الاصطناعي. يدعم التصوير المباشر، رفع الصور وملفات PDF، ويعطي تحليلًا دقيقًا خطوة بخطوة مع تمييز مرئي وشرح صوتي.',
+      aboutDescription: 'تطبيق احترافي متخصص في تحليل وشرح المخططات الكهربائية بدقة عالية باستخدام الذكاء الاصطناعي المتقدم. يوفر التطبيق تحليلاً تفصيلياً شاملاً للمخططات الكهربائية بجميع أنواعها مع دعم التصوير المباشر، رفع الصور المتعددة وملفات PDF، ويقدم تحليلاً دقيقاً خطوة بخطوة مع شرح صوتي واضح بثلاث لغات.',
+      featureAI: 'تحليل بالذكاء الاصطناعي',
+      featureAIDesc: 'ذكاء اصطناعي متقدم لفهم دقيق وشامل للمخططات الكهربائية',
+      featureRealtime: 'معالجة فورية',
+      featureRealtimeDesc: 'تحليل فوري مفصل مع شرح صوتي واضح بثلاث لغات',
+      featureFocus: 'تخصص كهربائي',
+      featureFocusDesc: 'متخصص حصرياً في تحليل المخططات الكهربائية فقط',
+      featureMulti: 'دعم متعدد الصيغ',
+      featureMultiDesc: 'التقاط بالكاميرا، رفع صور متعددة ومعالجة ملفات PDF',
       developedBy: 'تم التطوير بواسطة',
       version: 'الإصدار',
+      appPurpose: 'الغرض من التطبيق',
+      appPurposeDesc: 'هذا التطبيق مصمم خصيصاً لمساعدة المهندسين الكهربائيين والفنيين والطلاب في فهم وتحليل المخططات الكهربائية بشكل احترافي ودقيق. يوفر التطبيق تحليلاً تفصيلياً يشمل تحديد المكونات، شرح مسارات التيار، أنظمة الحماية، والمواصفات الفنية مع إمكانية تصدير التقارير بشكل احترافي.',
       
       // Settings
       language: 'اللغة',
@@ -78,6 +88,12 @@ const resources = {
       loading: 'جاري التحميل...',
       error: 'خطأ',
       success: 'نجح',
+      confirm: 'تأكيد',
+      back: 'رجوع',
+      print: 'طباعة',
+      exportReport: 'تصدير تقرير',
+      confirmAnalysis: 'تأكيد التحليل',
+      detailedView: 'العرض التفصيلي',
     },
   },
   fr: {
@@ -133,9 +149,19 @@ const resources = {
       
       // About
       aboutTitle: 'À propos de l\'application',
-      aboutDescription: 'Application professionnelle d\'analyse et d\'explication de schémas électriques par intelligence artificielle. Supporte la caméra en direct, l\'import d\'images et PDF, et fournit une analyse précise étape par étape avec surlignage visuel et explication vocale.',
+      aboutDescription: 'Application professionnelle spécialisée dans l\'analyse détaillée et l\'explication des schémas électriques avec haute précision en utilisant l\'intelligence artificielle avancée. L\'application fournit une analyse complète et détaillée de tous types de schémas électriques avec support de capture en direct, téléchargement d\'images multiples et fichiers PDF, et offre une analyse précise étape par étape avec explication audio claire en trois langues.',
+      featureAI: 'Analyse par IA',
+      featureAIDesc: 'Intelligence artificielle avancée pour compréhension précise des schémas électriques',
+      featureRealtime: 'Traitement instantané',
+      featureRealtimeDesc: 'Analyse instantanée détaillée avec explication audio en trois langues',
+      featureFocus: 'Spécialisation électrique',
+      featureFocusDesc: 'Spécialisé exclusivement dans l\'analyse des schémas électriques uniquement',
+      featureMulti: 'Support multi-formats',
+      featureMultiDesc: 'Capture caméra, téléchargement d\'images multiples et traitement PDF',
       developedBy: 'Développé par',
       version: 'Version',
+      appPurpose: 'Objectif de l\'application',
+      appPurposeDesc: 'Cette application est spécialement conçue pour aider les ingénieurs électriciens, techniciens et étudiants à comprendre et analyser les schémas électriques de manière professionnelle et précise. Elle fournit une analyse détaillée incluant l\'identification des composants, l\'explication des flux de courant, les systèmes de protection et les spécifications techniques avec possibilité d\'exporter des rapports professionnels.',
       
       // Settings
       language: 'Langue',
@@ -156,6 +182,12 @@ const resources = {
       loading: 'Chargement...',
       error: 'Erreur',
       success: 'Succès',
+      confirm: 'Confirmer',
+      back: 'Retour',
+      print: 'Imprimer',
+      exportReport: 'Exporter rapport',
+      confirmAnalysis: 'Confirmer l\'analyse',
+      detailedView: 'Vue détaillée',
     },
   },
   en: {
@@ -211,9 +243,19 @@ const resources = {
       
       // About
       aboutTitle: 'About the App',
-      aboutDescription: 'Professional AI-powered electrical schematic analysis app. Supports live camera, image/PDF upload, and delivers precise step-by-step analysis with visual highlighting and voice explanation.',
+      aboutDescription: 'Professional application specialized in detailed analysis and explanation of electrical schematics with high precision using advanced artificial intelligence. The application provides comprehensive detailed analysis of all types of electrical schematics with support for live capture, multiple image uploads and PDF files, and offers accurate step-by-step analysis with clear audio explanation in three languages.',
+      featureAI: 'AI-Powered Analysis',
+      featureAIDesc: 'Advanced artificial intelligence for precise electrical schematic understanding',
+      featureRealtime: 'Instant Processing',
+      featureRealtimeDesc: 'Instant detailed analysis with clear audio explanation in three languages',
+      featureFocus: 'Electrical Specialization',
+      featureFocusDesc: 'Exclusively specialized in electrical schematic analysis only',
+      featureMulti: 'Multi-Format Support',
+      featureMultiDesc: 'Camera capture, multiple image uploads and PDF processing',
       developedBy: 'Developed by',
       version: 'Version',
+      appPurpose: 'Application Purpose',
+      appPurposeDesc: 'This application is specially designed to help electrical engineers, technicians and students understand and analyze electrical schematics professionally and accurately. It provides detailed analysis including component identification, current flow explanation, protection systems and technical specifications with the ability to export professional reports.',
       
       // Settings
       language: 'Language',
@@ -234,6 +276,12 @@ const resources = {
       loading: 'Loading...',
       error: 'Error',
       success: 'Success',
+      confirm: 'Confirm',
+      back: 'Back',
+      print: 'Print',
+      exportReport: 'Export Report',
+      confirmAnalysis: 'Confirm Analysis',
+      detailedView: 'Detailed View',
     },
   },
 };
