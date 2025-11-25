@@ -10,18 +10,21 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 const AnalysisDetail = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const [isChatOpen, setIsChatOpen] = useState(false);
   
-  const { analysis, image } = location.state || {};
+  const { analysis, summary, images } = location.state || {};
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  if (!analysis || !image) {
+  if (!analysis || !images || images.length === 0) {
     navigate('/analyze');
     return null;
   }
+
+  const currentLanguage = i18n.language;
 
   const handlePrint = () => {
     window.print();
@@ -36,7 +39,7 @@ const AnalysisDetail = () => {
   };
 
   return (
-    <div className="min-h-screen carbon-texture print:bg-white">
+    <div className={`min-h-screen carbon-texture print:bg-white ${currentLanguage === 'ar' ? 'print:text-right' : 'print:text-left'}`} dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
       {/* Navigation Bar - Hidden in Print */}
       <div className="print:hidden sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="container mx-auto px-4 py-4">
@@ -106,11 +109,37 @@ const AnalysisDetail = () => {
           className="mb-8"
         >
           <Card className="glass p-6 print:shadow-none print:border">
-            <img 
-              src={image} 
-              alt="Electrical schematic" 
-              className="w-full max-h-[600px] object-contain rounded-lg"
-            />
+            <div className="relative">
+              <img 
+                src={images[currentImageIndex]} 
+                alt={`Electrical schematic ${currentImageIndex + 1}`}
+                className="w-full max-h-[600px] object-contain rounded-lg"
+              />
+              
+              {images.length > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-4 print:hidden">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
+                    disabled={currentImageIndex === 0}
+                  >
+                    السابق
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentImageIndex + 1} / {images.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentImageIndex(Math.min(images.length - 1, currentImageIndex + 1))}
+                    disabled={currentImageIndex === images.length - 1}
+                  >
+                    التالي
+                  </Button>
+                </div>
+              )}
+            </div>
           </Card>
         </motion.div>
 
@@ -119,23 +148,55 @@ const AnalysisDetail = () => {
           <AudioNarration text={analysis} />
         </div>
 
+        {/* Summary Section */}
+        {summary && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <Card className="glass p-8 print:shadow-none print:border print:p-6 border-gold">
+              <h2 className="text-2xl font-bold text-gold mb-6 print:text-black">
+                📋 ملخص المخطط الكهربائي
+              </h2>
+              <div className="prose prose-invert max-w-none print:prose-neutral">
+                <div 
+                  className="whitespace-pre-wrap text-base leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: summary
+                      .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-xl mt-4 mb-3 print:text-black print:text-lg">$1</h2>')
+                      .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-lg mt-3 mb-2 print:text-black print:text-base">$1</h3>')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold font-bold print:text-black">$1</strong>')
+                      .replace(/• /g, '<span class="text-gold print:text-black">• </span>')
+                  }}
+                />
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Analysis Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
         >
           <Card className="glass p-8 print:shadow-none print:border print:p-6">
+            <h2 className="text-2xl font-bold text-blue-electric mb-6 print:text-black">
+              🔍 التحليل التفصيلي
+            </h2>
             <div className="prose prose-invert max-w-none print:prose-neutral">
               <div 
                 className="whitespace-pre-wrap text-base leading-relaxed"
                 dangerouslySetInnerHTML={{
                   __html: analysis
-                    .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-2xl mt-6 mb-4 print:text-black print:text-xl">$1</h2>')
-                    .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-xl mt-4 mb-3 print:text-black print:text-lg">$1</h3>')
+                    .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-2xl mt-8 mb-4 border-b-2 border-gold pb-2 print:text-black print:border-black print:text-xl">$1</h2>')
+                    .replace(/### (.*)/g, '<h3 class="text-blue-electric font-semibold text-xl mt-6 mb-3 print:text-black print:text-lg">$1</h3>')
+                    .replace(/#### (.*)/g, '<h4 class="text-gold-light font-semibold text-lg mt-4 mb-2 print:text-black print:text-base">$1</h4>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold font-bold print:text-black">$1</strong>')
-                    .replace(/\n\n/g, '</p><p class="mb-4">')
-                    .replace(/^(.+)$/gm, '<p class="mb-4">$1</p>')
+                    .replace(/• /g, '<span class="text-gold print:text-black">• </span>')
+                    .replace(/\n\n/g, '</p><p class="mb-4 print:mb-3 print:text-black">')
                 }}
               />
             </div>
