@@ -80,6 +80,7 @@ const Analyze = () => {
       const { data, error } = await supabase.functions.invoke('analyze-schematic', {
         body: { 
           imageBase64: currentImages[0],
+          allImages: currentImages,
           language: i18n.language,
           mode: 'summary'
         }
@@ -199,8 +200,6 @@ const Analyze = () => {
 
   return (
     <div className="min-h-screen carbon-texture">
-      <DeveloperSignature />
-      
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, x: -20 }}

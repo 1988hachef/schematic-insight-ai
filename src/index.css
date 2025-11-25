@@ -150,3 +150,71 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  .carbon-texture {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  /* RTL support for Arabic */
+  [dir="rtl"] {
+    text-align: right;
+    direction: rtl;
+  }
+
+  /* Page break controls */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure proper margins for print */
+  @page {
+    margin: 2cm;
+  }
+
+  /* Hide unnecessary elements */
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure text is readable */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    color: black !important;
+  }
+
+  /* Colored headings for print */
+  h2[class*="print:text-blue"] {
+    color: #2563eb !important;
+    font-weight: 700 !important;
+  }
+
+  h3[class*="print:text-blue"] {
+    color: #3b82f6 !important;
+    font-weight: 600 !important;
+  }
+
+  h4[class*="print:text-blue"] {
+    color: #60a5fa !important;
+    font-weight: 600 !important;
+  }
+
+  strong[class*="print:text-blue"] {
+    color: #2563eb !important;
+    font-weight: 700 !important;
+  }
+}

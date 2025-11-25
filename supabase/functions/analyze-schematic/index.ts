@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, language = 'ar', mode = 'detailed' } = await req.json();
+    const { imageBase64, allImages, language = 'ar', mode = 'detailed' } = await req.json();
     
     if (!imageBase64) {
       throw new Error('Image is required');
@@ -23,9 +23,11 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Starting schematic analysis...');
+    // Use all images if provided, otherwise use single image
+    const images = allImages && allImages.length > 0 ? allImages : [imageBase64];
+    console.log(`Starting schematic analysis for ${images.length} image(s)...`);
 
-    // Step 1: Validate that the image contains electrical/technical content
+    // Step 1: Validate the first image only
     console.log('Starting image validation...');
     
     const validationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -51,7 +53,7 @@ serve(async (req) => {
               {
                 type: 'image_url',
                 image_url: {
-                  url: imageBase64
+                  url: images[0]
                 }
               }
             ]
@@ -95,10 +97,28 @@ serve(async (req) => {
       console.log('Image validation passed');
     }
 
-    // Step 2: Analyze the electrical schematic with structured format
+    // Step 2: Analyze all images together
+    console.log(`Starting ${mode} analysis for ${images.length} image(s)...`);
+
+    // Build the content array with all images
+    const imageContents = images.map((img: string, index: number) => [
+      {
+        type: 'text',
+        text: images.length > 1 
+          ? `صورة ${index + 1} من ${images.length} للمخطط الكهربائي:`
+          : 'المخطط الكهربائي:'
+      },
+      {
+        type: 'image_url',
+        image_url: { url: img }
+      }
+    ]).flat();
+
     const systemPrompts = {
-      'ar': mode === 'summary' ? 
+      'ar': mode === 'summary' ?
         `أنت خبير في تلخيص المخططات الكهربائية. مهمتك هي تقديم ملخص مبسط وواضح للمخطط.
+
+${images.length > 1 ? `ملاحظة: سيتم تقديم ${images.length} صورة تمثل أجزاء من مخطط واحد متكامل. قدم ملخصاً شاملاً للمخطط الكامل بناءً على جميع الصور.` : ''}
 
 قواعد الملخص:
 1. ابدأ بجملة واحدة توضح الغرض الرئيسي من المخطط
@@ -119,6 +139,8 @@ serve(async (req) => {
 
 كن موجزاً وواضحاً.` :
         `أنت مهندس كهربائي محترف متخصص في تحليل المخططات الكهربائية بدقة عالية.
+
+${images.length > 1 ? `ملاحظة مهمة: سيتم تقديم ${images.length} صورة لك. هذه الصور تمثل أجزاء من مخطط كهربائي واحد متكامل. يجب عليك تحليل جميع الصور معاً وربط المعلومات من كل صورة لتقديم تحليل شامل للمخطط الكامل.` : ''}
 
 قم بتحليل المخطط الكهربائي بشكل شامل ومفصل للغاية واحترافي:
 
@@ -382,11 +404,12 @@ Always use:
             role: 'user',
             content: [
               {
-                type: 'image_url',
-                image_url: {
-                  url: imageBase64
-                }
-              }
+                type: 'text',
+                text: images.length > 1
+                  ? `قم بتحليل هذا المخطط الكهربائي الكامل بشكل ${mode === 'summary' ? 'ملخص' : 'مفصل'} واحترافي. المخطط مقسم إلى ${images.length} صورة. قم بتحليل جميع الأجزاء وربطها معاً لتقديم تحليل متكامل.`
+                  : `قم بتحليل هذا المخطط الكهربائي بشكل ${mode === 'summary' ? 'ملخص' : 'مفصل'} واحترافي.`
+              },
+              ...imageContents
             ]
           }
         ],
