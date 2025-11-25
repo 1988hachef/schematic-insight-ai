@@ -25,7 +25,9 @@ serve(async (req) => {
 
     console.log('Starting schematic analysis...');
 
-    // Step 1: Validate that the image is an electrical schematic
+    // Step 1: Validate that the image contains electrical/technical content
+    console.log('Starting image validation...');
+    
     const validationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -37,14 +39,14 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert electrical engineer. Your task is to determine if an image is an electrical schematic diagram (single-line, control, wiring, P&ID electrical part, etc.). Respond with ONLY "YES" or "NO".'
+            content: 'You are an expert electrical engineer. Determine if this image contains ANY electrical, electronic, or technical schematic content including: circuit diagrams, wiring diagrams, control schematics, single-line diagrams, P&ID diagrams, electrical symbols, technical drawings with electrical components, or any electrical engineering documentation. Be INCLUSIVE and accept borderline cases. Only reject if the image is clearly NOT electrical/technical (like photos of people, landscapes, animals, etc.). Answer ONLY "YES" or "NO".'
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Is this image an electrical schematic diagram? Answer ONLY with YES or NO.'
+                text: 'Does this image contain electrical or technical schematic content? Be lenient - accept any electrical/technical diagrams. Answer ONLY YES or NO.'
               },
               {
                 type: 'image_url',
@@ -61,31 +63,36 @@ serve(async (req) => {
     if (!validationResponse.ok) {
       const errorText = await validationResponse.text();
       console.error('Validation API error:', validationResponse.status, errorText);
-      throw new Error('Failed to validate image');
-    }
-
-    const validationData = await validationResponse.json();
-    const isElectrical = validationData.choices[0].message.content.trim().toUpperCase();
-    
-    console.log('Validation result:', isElectrical);
-
-    if (isElectrical !== 'YES') {
-      const errorMessages = {
-        'ar': 'عذراً، هذه الصورة ليست مخططاً كهربائياً',
-        'fr': 'Désolé, cette image n\'est pas un schéma électrique',
-        'en': 'Sorry, this image is not an electrical schematic'
-      };
       
-      return new Response(
-        JSON.stringify({ 
-          error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'],
-          isValid: false 
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      // If validation fails, proceed with analysis anyway
+      console.log('Validation failed, but proceeding with analysis...');
+    } else {
+      const validationData = await validationResponse.json();
+      const responseContent = validationData.choices[0].message.content.trim().toUpperCase();
+      
+      console.log('Validation response:', responseContent);
+
+      // Only reject if explicitly "NO" - accept anything else
+      if (responseContent.includes('NO') && !responseContent.includes('YES')) {
+        const errorMessages = {
+          'ar': 'عذراً، هذه الصورة لا تبدو كمخطط كهربائي أو تقني. يرجى تحميل صورة لمخطط كهربائي.',
+          'fr': 'Désolé, cette image ne semble pas être un schéma électrique ou technique. Veuillez télécharger une image de schéma électrique.',
+          'en': 'Sorry, this image does not appear to be an electrical or technical schematic. Please upload an electrical schematic image.'
+        };
+        
+        return new Response(
+          JSON.stringify({ 
+            error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'],
+            isValid: false 
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      
+      console.log('Image validation passed');
     }
 
     // Step 2: Analyze the electrical schematic with structured format
