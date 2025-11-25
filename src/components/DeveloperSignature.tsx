@@ -6,15 +6,13 @@ interface DeveloperSignatureProps {
 }
 
 export const DeveloperSignature = ({ position = 'right', className = '' }: DeveloperSignatureProps) => {
-  const { t } = useTranslation();
-  
   return (
     <div 
-      className={`fixed top-6 ${position === 'left' ? 'left-6' : 'right-6'} z-50 ${className}`}
+      className={`fixed bottom-6 ${position === 'left' ? 'left-6' : 'right-6'} z-50 ${className}`}
       style={{ direction: 'ltr' }}
     >
-      <div className="text-gold text-sm font-semibold tracking-wide animate-shimmer">
-        {t('developer')}
+      <div className="text-gold text-xs font-semibold tracking-wider opacity-70 hover:opacity-100 transition-opacity">
+        HACHEF OUSSAMA
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, language = 'ar' } = await req.json();
+    const { imageBase64, language = 'ar', mode = 'detailed' } = await req.json();
     
     if (!imageBase64) {
       throw new Error('Image is required');
@@ -90,7 +90,28 @@ serve(async (req) => {
 
     // Step 2: Analyze the electrical schematic with structured format
     const systemPrompts = {
-      'ar': `أنت مهندس كهربائي محترف متخصص في تحليل المخططات الكهربائية بدقة عالية.
+      'ar': mode === 'summary' ? 
+        `أنت خبير في تلخيص المخططات الكهربائية. مهمتك هي تقديم ملخص مبسط وواضح للمخطط.
+
+قواعد الملخص:
+1. ابدأ بجملة واحدة توضح الغرض الرئيسي من المخطط
+2. قدم شرحاً مبسطاً في فقرة واحدة (2-3 أسطر)
+3. اختم بخلاصة على شكل نقاط (3-5 نقاط رئيسية)
+
+تنسيق الإخراج:
+## 🎯 الغرض من المخطط
+شرح موجز في سطر واحد عن الهدف الأساسي
+
+## 📝 الشرح المبسط
+فقرة واحدة توضح الفكرة الأساسية والمكونات الرئيسية
+
+## ✅ الخلاصة
+• النقطة الرئيسية الأولى
+• النقطة الرئيسية الثانية
+• النقطة الرئيسية الثالثة
+
+كن موجزاً وواضحاً.` :
+        `أنت مهندس كهربائي محترف متخصص في تحليل المخططات الكهربائية بدقة عالية.
 
 قم بتحليل المخطط الكهربائي بشكل شامل ومفصل للغاية واحترافي:
 
@@ -158,7 +179,28 @@ serve(async (req) => {
 - لغة هندسية واضحة ومهنية ودقيقة
 - تفاصيل فنية شاملة وعميقة`,
 
-      'fr': `Vous êtes un ingénieur électricien professionnel hautement spécialisé dans l'analyse détaillée de schémas électriques.
+      'fr': mode === 'summary' ? 
+        `Vous êtes un expert en résumé de schémas électriques. Votre tâche est de fournir un résumé clair et simplifié.
+
+Règles du résumé:
+1. Commencez par une phrase expliquant l'objectif principal
+2. Fournissez une explication simplifiée en un paragraphe (2-3 lignes)
+3. Terminez par un résumé sous forme de points clés (3-5 points)
+
+Format de sortie:
+## 🎯 Objectif du Schéma
+Explication brève en une ligne
+
+## 📝 Explication Simplifiée
+Un paragraphe expliquant l'idée principale et les composants clés
+
+## ✅ Résumé
+• Premier point clé
+• Deuxième point clé
+• Troisième point clé
+
+Soyez concis et clair.` :
+        `Vous êtes un ingénieur électricien professionnel hautement spécialisé dans l'analyse détaillée de schémas électriques.
 
 Analysez le schéma électrique de manière exhaustive et professionnelle:
 
@@ -226,7 +268,28 @@ Utilisez toujours:
 - Langage technique précis
 - Détails techniques approfondis`,
 
-      'en': `You are a highly specialized professional electrical engineer expert in detailed electrical schematic analysis.
+      'en': mode === 'summary' ? 
+        `You are an expert in summarizing electrical schematics. Your task is to provide a clear and simplified summary.
+
+Summary rules:
+1. Start with one sentence explaining the main purpose
+2. Provide a simplified explanation in one paragraph (2-3 lines)
+3. End with a summary in key points (3-5 points)
+
+Output format:
+## 🎯 Schematic Purpose
+Brief one-line explanation
+
+## 📝 Simplified Explanation
+One paragraph explaining the main idea and key components
+
+## ✅ Summary
+• First key point
+• Second key point
+• Third key point
+
+Be concise and clear.` :
+        `You are a highly specialized professional electrical engineer expert in detailed electrical schematic analysis.
 
 Analyze the electrical schematic comprehensively and professionally:
 

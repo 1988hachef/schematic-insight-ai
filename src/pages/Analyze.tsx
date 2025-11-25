@@ -19,18 +19,23 @@ const Analyze = () => {
   const [isOnline] = useState(navigator.onLine);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
-  const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [currentImages, setCurrentImages] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const analyzeImage = async (imageDataUrl: string) => {
+  const analyzeImages = async (imageDataUrls: string[]) => {
     setIsAnalyzing(true);
-    setCurrentImage(imageDataUrl);
+    setCurrentImages(imageDataUrls);
+    setCurrentImageIndex(0);
     setAnalysis(null);
+    setSummary(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-schematic', {
         body: { 
-          imageBase64: imageDataUrl,
+          imageBase64: imageDataUrls[0],
+          allImages: imageDataUrls,
           language: i18n.language 
         }
       });
@@ -45,7 +50,7 @@ const Analyze = () => {
           description: data.error,
           variant: 'destructive',
         });
-        setCurrentImage(null);
+        setCurrentImages([]);
         return;
       }
 
@@ -61,7 +66,47 @@ const Analyze = () => {
         description: error instanceof Error ? error.message : 'Failed to analyze',
         variant: 'destructive',
       });
-      setCurrentImage(null);
+      setCurrentImages([]);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const generateSummary = async () => {
+    if (!analysis || currentImages.length === 0) return;
+
+    setIsAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-schematic', {
+        body: { 
+          imageBase64: currentImages[0],
+          language: i18n.language,
+          mode: 'summary'
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) {
+        toast({
+          title: t('error'),
+          description: data.error,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setSummary(data.analysis);
+      toast({
+        title: t('success'),
+        description: 'تم إنشاء الملخص بنجاح',
+      });
+    } catch (error) {
+      console.error('Summary error:', error);
+      toast({
+        title: t('error'),
+        description: 'فشل في إنشاء الملخص',
+        variant: 'destructive',
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -79,7 +124,7 @@ const Analyze = () => {
 
     try {
       const image = await captureImage();
-      await analyzeImage(image);
+      await analyzeImages([image]);
     } catch (error) {
       console.error('Camera error:', error);
       toast({
@@ -101,8 +146,14 @@ const Analyze = () => {
     }
 
     try {
-      const image = await pickImage();
-      await analyzeImage(image);
+      const images = await pickMultipleImages();
+      if (images.length > 0) {
+        toast({
+          title: t('success'),
+          description: `تم تحميل ${images.length} صورة، جاري التحليل...`,
+        });
+        await analyzeImages(images);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       if (error instanceof Error && error.message !== 'User cancelled photos app') {
@@ -115,38 +166,6 @@ const Analyze = () => {
     }
   };
 
-  const handleMultipleUpload = async () => {
-    if (!isOnline) {
-      toast({
-        title: t('error'),
-        description: t('onlineRequired'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const images = await pickMultipleImages();
-      if (images.length > 0) {
-        // Combine all images by analyzing them together
-        // For now we'll analyze the first one, but in future we can stitch them
-        toast({
-          title: t('loading'),
-          description: `${images.length} صور محملة، جاري التحليل...`,
-        });
-        await analyzeImage(images[0]);
-      }
-    } catch (error) {
-      console.error('Multiple upload error:', error);
-      if (error instanceof Error && error.message !== 'No files selected') {
-        toast({
-          title: t('error'),
-          description: 'Failed to upload images',
-          variant: 'destructive',
-        });
-      }
-    }
-  };
 
   const handlePDF = async () => {
     if (!isOnline) {
@@ -289,18 +308,45 @@ const Analyze = () => {
         )}
 
         {/* Analysis Result */}
-        {currentImage && (
+        {currentImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
             <Card className="glass p-6">
-              <img 
-                src={currentImage} 
-                alt="Uploaded schematic" 
-                className="w-full max-h-96 object-contain rounded-lg mb-4"
-              />
+              {/* Image Gallery */}
+              <div className="relative">
+                <img 
+                  src={currentImages[currentImageIndex]} 
+                  alt={`Schematic ${currentImageIndex + 1}`}
+                  className="w-full max-h-96 object-contain rounded-lg mb-4"
+                />
+                
+                {currentImages.length > 1 && (
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
+                      disabled={currentImageIndex === 0}
+                    >
+                      السابق
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {currentImageIndex + 1} / {currentImages.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentImageIndex(Math.min(currentImages.length - 1, currentImageIndex + 1))}
+                      disabled={currentImageIndex === currentImages.length - 1}
+                    >
+                      التالي
+                    </Button>
+                  </div>
+                )}
+              </div>
               {isAnalyzing && (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-12 h-12 text-gold animate-spin" />
@@ -308,10 +354,19 @@ const Analyze = () => {
                 </div>
               )}
               {analysis && (
-                <div className="mt-4">
+                <div className="mt-4 space-y-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gold">{t('stepByStep')}</h3>
+                    <h3 className="text-2xl font-bold text-gold">{t('stepByStep')}</h3>
                     <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={generateSummary}
+                        disabled={isAnalyzing}
+                      >
+                        {isAnalyzing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                        ملخص المخطط
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -325,7 +380,7 @@ const Analyze = () => {
                         size="sm"
                         onClick={() => {
                           navigate('/analysis-detail', {
-                            state: { analysis, image: currentImage }
+                            state: { analysis, summary, images: currentImages }
                           });
                         }}
                       >
@@ -333,20 +388,43 @@ const Analyze = () => {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Summary Section */}
+                  {summary && (
+                    <Card className="glass p-6 border-gold">
+                      <h4 className="text-xl font-bold text-gold mb-4">📋 ملخص المخطط</h4>
+                      <div 
+                        className="prose prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{
+                          __html: summary
+                            .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-xl mt-4 mb-3">$1</h2>')
+                            .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-lg mt-3 mb-2">$1</h3>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold">$1</strong>')
+                            .replace(/• /g, '<span class="text-gold">• </span>')
+                        }}
+                      />
+                    </Card>
+                  )}
                   
                   <AudioNarration text={analysis} />
 
-                  <div className="prose prose-invert max-w-none mt-4">
-                    <div 
-                      className="whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: analysis
-                          .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-lg mt-4 mb-2">$1</h2>')
-                          .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-base mt-3 mb-2">$1</h3>')
-                          .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold">$1</strong>')
-                      }}
-                    />
-                  </div>
+                  {/* Detailed Analysis */}
+                  <Card className="glass p-6">
+                    <h4 className="text-xl font-bold text-blue-electric mb-4">🔍 التحليل التفصيلي</h4>
+                    <div className="prose prose-invert max-w-none">
+                      <div 
+                        className="whitespace-pre-wrap leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: analysis
+                            .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-2xl mt-6 mb-4 border-b border-gold pb-2">$1</h2>')
+                            .replace(/### (.*)/g, '<h3 class="text-blue-electric font-semibold text-xl mt-4 mb-3">$1</h3>')
+                            .replace(/#### (.*)/g, '<h4 class="text-gold-light font-semibold text-lg mt-3 mb-2">$1</h4>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold font-bold">$1</strong>')
+                            .replace(/• /g, '<span class="text-gold">• </span>')
+                        }}
+                      />
+                    </div>
+                  </Card>
                 </div>
               )}
             </Card>
