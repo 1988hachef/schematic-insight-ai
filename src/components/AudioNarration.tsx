@@ -67,7 +67,10 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
   }, [isMuted, utterance]);
 
   const handlePlayPause = () => {
-    if (!utterance) return;
+    if (!utterance) {
+      console.error('No utterance available');
+      return;
+    }
 
     if (isPlaying) {
       window.speechSynthesis.cancel();
@@ -76,11 +79,40 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
       // Cancel any existing speech before starting new
       window.speechSynthesis.cancel();
       
-      // Wait a bit for cancel to complete
+      // Create a fresh utterance with current settings
+      const freshUtterance = new SpeechSynthesisUtterance(text);
+      const langMap: Record<string, string> = {
+        'ar': 'ar-SA',
+        'fr': 'fr-FR',
+        'en': 'en-US',
+      };
+      freshUtterance.lang = langMap[i18n.language] || 'ar-SA';
+      freshUtterance.rate = rate;
+      freshUtterance.volume = isMuted ? 0 : 1;
+      freshUtterance.pitch = 1;
+      
+      freshUtterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      freshUtterance.onerror = (event) => {
+        console.error('Speech error:', event);
+        setIsPlaying(false);
+      };
+      
+      // Use fresh utterance
+      setUtterance(freshUtterance);
+      
+      // Small delay to ensure clean state
       setTimeout(() => {
-        window.speechSynthesis.speak(utterance);
-        setIsPlaying(true);
-      }, 100);
+        try {
+          window.speechSynthesis.speak(freshUtterance);
+          setIsPlaying(true);
+        } catch (error) {
+          console.error('Speech synthesis error:', error);
+          setIsPlaying(false);
+        }
+      }, 150);
     }
   };
 

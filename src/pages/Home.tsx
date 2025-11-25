@@ -37,8 +37,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen carbon-texture">
-      <DeveloperSignature position="right" />
-      
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Header */}
         <motion.div
@@ -112,6 +110,18 @@ const Home = () => {
               </Card>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* Developer Signature - Bottom Center */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="text-center mt-20 mb-8"
+        >
+          <div className="text-gold text-lg font-bold tracking-widest opacity-80 hover:opacity-100 transition-opacity">
+            DEVELOPED BY HACHEF OUSSAMA
+          </div>
         </motion.div>
       </div>
     </div>
