@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, allImages, language = 'ar', mode = 'detailed' } = await req.json();
+    const { imageBase64, allImages, language = 'ar', mode = 'detailed', textToCorrect } = await req.json();
     
     if (!imageBase64) {
       throw new Error('Image is required');
@@ -115,7 +115,9 @@ serve(async (req) => {
     ]).flat();
 
     const systemPrompts = {
-      'ar': mode === 'summary' ?
+      'ar': mode === 'correct' ?
+        'أنت خبير في مراجعة وتصحيح التحاليل الفنية للمخططات الكهربائية. مهمتك:\n1. فحص النص للأخطاء الإملائية والنحوية\n2. التحقق من دقة المعلومات التقنية\n3. إصلاح أي معلومات خاطئة أو غير دقيقة\n4. تحسين الصياغة إذا لزم الأمر\n\nأرجع النص المصحح مع قائمة بالتصحيحات المطبقة بهذا التنسيق:\n\n## النص المصحح\n[النص المحسن والمصحح]\n\n## التصحيحات المطبقة\n- التصحيح الأول\n- التصحيح الثاني' :
+        mode === 'summary' ?
         `أنت خبير في تلخيص المخططات الكهربائية. مهمتك هي تقديم ملخص مبسط وواضح للمخطط.
 
 ${images.length > 1 ? `ملاحظة: سيتم تقديم ${images.length} صورة تمثل أجزاء من مخطط واحد متكامل. قدم ملخصاً شاملاً للمخطط الكامل بناءً على جميع الصور.` : ''}
@@ -208,7 +210,9 @@ ${images.length > 1 ? `ملاحظة مهمة: سيتم تقديم ${images.lengt
 - لغة هندسية واضحة ومهنية ودقيقة
 - تفاصيل فنية شاملة وعميقة`,
 
-      'fr': mode === 'summary' ? 
+      'fr': mode === 'correct' ?
+        'Vous êtes un expert en révision et correction d\'analyses techniques de schémas électriques. Votre tâche:\n1. Vérifier le texte pour les fautes d\'orthographe et de grammaire\n2. Vérifier l\'exactitude des informations techniques\n3. Corriger toute information incorrecte ou imprécise\n4. Améliorer la formulation si nécessaire\n\nRetournez le texte corrigé avec une liste des corrections appliquées.' :
+        mode === 'summary' ?
         `Vous êtes un expert en résumé de schémas électriques. Votre tâche est de fournir un résumé clair et simplifié.
 
 Règles du résumé:
@@ -297,7 +301,9 @@ Utilisez toujours:
 - Langage technique précis
 - Détails techniques approfondis`,
 
-      'en': mode === 'summary' ? 
+      'en': mode === 'correct' ?
+        'You are an expert in reviewing and correcting technical analyses of electrical schematics. Your task:\n1. Check the text for spelling and grammar errors\n2. Verify the accuracy of technical information\n3. Fix any incorrect or inaccurate information\n4. Improve wording if necessary\n\nReturn the corrected text with a list of corrections applied.' :
+        mode === 'summary' ?
         `You are an expert in summarizing electrical schematics. Your task is to provide a clear and simplified summary.
 
 Summary rules:
@@ -400,18 +406,27 @@ Always use:
             role: 'system',
             content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
           },
+    let messagesContent;
+    
+    if (mode === 'correct' && textToCorrect) {
+      messagesContent = {
+        role: 'user',
+        content: `قم بمراجعة وتصحيح النص التالي:\n\n${textToCorrect}`
+      };
+    } else {
+      messagesContent = {
+        role: 'user',
+        content: [
           {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: images.length > 1
-                  ? `قم بتحليل هذا المخطط الكهربائي الكامل بشكل ${mode === 'summary' ? 'ملخص' : 'مفصل'} واحترافي. المخطط مقسم إلى ${images.length} صورة. قم بتحليل جميع الأجزاء وربطها معاً لتقديم تحليل متكامل.`
-                  : `قم بتحليل هذا المخطط الكهربائي بشكل ${mode === 'summary' ? 'ملخص' : 'مفصل'} واحترافي.`
-              },
-              ...imageContents
-            ]
-          }
+            type: 'text',
+            text: images.length > 1
+              ? `قم بتحليل هذا المخطط الكهربائي الكامل بشكل ${mode === 'summary' ? 'ملخص' : 'مفصل'} واحترافي. المخطط مقسم إلى ${images.length} صورة. قم بتحليل جميع الأجزاء وربطها معاً لتقديم تحليل متكامل.`
+              : `قم بتحليل هذا المخطط الكهربائي بشكل ${mode === 'summary' ? 'ملخص' : 'مفصل'} واحترافي.`
+          },
+          ...imageContents
+        ]
+      };
+    }
         ],
       }),
     });
@@ -444,9 +459,25 @@ Always use:
 
     console.log('Analysis completed successfully');
 
+    // Extract corrections if in correction mode
+    let corrections: string[] = [];
+    if (mode === 'correct') {
+      const correctionMatch = analysis.match(/التصحيحات المطبقة|Corrections appliquées|Corrections applied/i);
+      if (correctionMatch) {
+        const correctionsText = analysis.substring(correctionMatch.index!);
+        corrections = correctionsText
+          .split('\n')
+          .filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'))
+          .map(line => line.replace(/^[-•]\s*/, '').trim())
+          .filter(Boolean);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         analysis,
+        correctedText: mode === 'correct' ? analysis : undefined,
+        corrections: mode === 'correct' ? corrections : undefined,
         isValid: true,
         timestamp: new Date().toISOString()
       }),

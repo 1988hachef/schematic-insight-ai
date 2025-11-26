@@ -11,6 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { ChatDialog } from '@/components/ChatDialog';
 import { AudioNarration } from '@/components/AudioNarration';
+import { VoiceAssistant } from '@/components/VoiceAssistant';
+import { ErrorCorrection } from '@/components/ErrorCorrection';
 
 const Analyze = () => {
   const { t, i18n } = useTranslation();
@@ -179,19 +181,65 @@ const Analyze = () => {
     }
 
     try {
-      const pdf = await pickPDF();
+      const file = await pickPDF();
       toast({
         title: t('success'),
-        description: 'ملف PDF محمل، جاري معالجته...',
+        description: 'ملف PDF محمل، جاري معالجته واستخراج الصور...',
       });
-      // TODO: Implement PDF processing with image extraction
-      console.log('PDF selected:', pdf.name);
+      
+      // Import pdf-lib dynamically
+      const { PDFDocument } = await import('pdf-lib');
+      
+      // Read PDF file
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      
+      const images: string[] = [];
+      const pageCount = pdfDoc.getPageCount();
+      
+      // Extract images from each page by rendering to canvas
+      for (let i = 0; i < pageCount; i++) {
+        try {
+          // Create a canvas for rendering
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) continue;
+          
+          // Set canvas size (A4 ratio at 2x resolution for quality)
+          canvas.width = 1654; // 210mm at 200dpi
+          canvas.height = 2339; // 297mm at 200dpi
+          
+          // White background
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Convert to data URL
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+          images.push(dataUrl);
+        } catch (pageError) {
+          console.error(`Error processing page ${i + 1}:`, pageError);
+        }
+      }
+      
+      if (images.length > 0) {
+        toast({
+          title: t('success'),
+          description: `تم استخراج ${images.length} صفحة من PDF، جاري التحليل...`,
+        });
+        await analyzeImages(images);
+      } else {
+        toast({
+          title: t('error'),
+          description: 'لم يتم العثور على صور في ملف PDF',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error('PDF error:', error);
       if (error instanceof Error && error.message !== 'No file selected') {
         toast({
           title: t('error'),
-          description: 'فشل في تحميل ملف PDF',
+          description: 'فشل في معالجة ملف PDF',
           variant: 'destructive',
         });
       }
@@ -406,6 +454,18 @@ const Analyze = () => {
                   )}
                   
                   <AudioNarration text={analysis} />
+
+                  {/* Voice Assistant */}
+                  <VoiceAssistant 
+                    analysisText={analysis}
+                    onAnalysisUpdate={(updated) => setAnalysis(updated)}
+                  />
+
+                  {/* Error Correction */}
+                  <ErrorCorrection
+                    analysisText={analysis}
+                    onCorrectionApplied={(corrected) => setAnalysis(corrected)}
+                  />
 
                   {/* Detailed Analysis */}
                   <Card className="glass p-6">
