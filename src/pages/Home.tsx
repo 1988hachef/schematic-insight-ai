@@ -21,9 +21,6 @@ const Home = () => {
       color: 'from-blue-electric to-blue-glow',
       onClick: () => navigate('/analyze'),
     },
-  ];
-
-  const rightActions = [
     {
       icon: FileText,
       label: t('uploadPDF'),
@@ -31,6 +28,8 @@ const Home = () => {
       onClick: () => navigate('/analyze'),
     },
   ];
+
+  const rightActions: any[] = [];
 
   const settingsActions = [
     { icon: Settings, label: t('settings'), path: '/settings' },

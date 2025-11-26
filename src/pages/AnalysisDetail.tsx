@@ -182,18 +182,18 @@ const AnalysisDetail = () => {
               <h2 className="text-2xl font-bold text-gold mb-6 print:text-blue-600 print:font-extrabold print:text-xl">
                 📋 ملخص المخطط الكهربائي
               </h2>
-              <div className="prose prose-invert max-w-none print:prose-neutral">
-                <div 
-                  className="whitespace-pre-wrap text-base leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: summary
-                      .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-xl mt-4 mb-3 print:text-blue-600 print:font-bold print:text-lg">$1</h2>')
-                      .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-lg mt-3 mb-2 print:text-blue-500 print:font-semibold print:text-base">$1</h3>')
-                      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold font-bold print:text-blue-600 print:font-bold">$1</strong>')
-                      .replace(/• /g, '<span class="text-gold print:text-black">• </span>')
-                  }}
-                />
-              </div>
+            <div className="prose prose-invert max-w-none print:prose-neutral" dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
+              <div 
+                className={`whitespace-pre-wrap text-base leading-relaxed ${currentLanguage === 'ar' ? 'text-right' : 'text-left'}`}
+                dangerouslySetInnerHTML={{
+                  __html: summary
+                    .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-xl mt-4 mb-3 print:text-blue-600 print:font-bold print:text-lg">$1</h2>')
+                    .replace(/### (.*)/g, '<h3 class="text-gold-light font-semibold text-lg mt-3 mb-2 print:text-blue-500 print:font-semibold print:text-base">$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gold font-bold print:text-blue-600 print:font-bold">$1</strong>')
+                    .replace(/• /g, '<span class="text-gold print:text-black">• </span>')
+                }}
+              />
+            </div>
             </Card>
           </motion.div>
         )}
@@ -208,9 +208,9 @@ const AnalysisDetail = () => {
             <h2 className="text-2xl font-bold text-blue-electric mb-6 print:text-blue-600 print:font-extrabold print:text-xl">
               🔍 التحليل التفصيلي
             </h2>
-            <div className="prose prose-invert max-w-none print:prose-neutral">
+            <div className="prose prose-invert max-w-none print:prose-neutral" dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
               <div 
-                className="whitespace-pre-wrap text-base leading-relaxed"
+                className={`whitespace-pre-wrap text-base leading-relaxed ${currentLanguage === 'ar' ? 'text-right' : 'text-left'}`}
                 dangerouslySetInnerHTML={{
                   __html: analysis
                     .replace(/## (.*)/g, '<h2 class="text-gold font-bold text-2xl mt-8 mb-4 border-b-2 border-gold pb-2 print:text-blue-600 print:border-blue-600 print:font-bold print:text-xl">$1</h2>')

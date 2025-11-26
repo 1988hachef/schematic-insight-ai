@@ -197,27 +197,46 @@ const Analyze = () => {
       const images: string[] = [];
       const pageCount = pdfDoc.getPageCount();
       
-      // Extract images from each page by rendering to canvas
-      for (let i = 0; i < pageCount; i++) {
+      toast({
+        title: 'معالجة PDF',
+        description: `جاري معالجة ${pageCount} صفحة...`,
+      });
+      
+      // Use pdf.js for proper PDF rendering
+      const pdfjs = await import('pdfjs-dist');
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+      
+      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      
+      // Extract images from each page by rendering with pdf.js
+      for (let i = 1; i <= pageCount; i++) {
         try {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 2.0 });
+          
           // Create a canvas for rendering
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           if (!ctx) continue;
           
-          // Set canvas size (A4 ratio at 2x resolution for quality)
-          canvas.width = 1654; // 210mm at 200dpi
-          canvas.height = 2339; // 297mm at 200dpi
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
           
-          // White background
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          // Render PDF page to canvas
+          await page.render({
+            canvasContext: ctx,
+            viewport: viewport,
+            canvas: canvas
+          }).promise;
           
           // Convert to data URL
           const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
           images.push(dataUrl);
+          
+          console.log(`Processed page ${i}/${pageCount}`);
         } catch (pageError) {
-          console.error(`Error processing page ${i + 1}:`, pageError);
+          console.error(`Error processing page ${i}:`, pageError);
         }
       }
       
