@@ -393,19 +393,7 @@ Always use:
 - In-depth technical details`
     };
 
-    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
-          },
+    // Prepare messages content based on mode
     let messagesContent;
     
     if (mode === 'correct' && textToCorrect) {
@@ -427,6 +415,21 @@ Always use:
         ]
       };
     }
+
+    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
+          },
+          messagesContent
         ],
       }),
     });
@@ -467,8 +470,8 @@ Always use:
         const correctionsText = analysis.substring(correctionMatch.index!);
         corrections = correctionsText
           .split('\n')
-          .filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'))
-          .map(line => line.replace(/^[-•]\s*/, '').trim())
+          .filter((line: string) => line.trim().startsWith('-') || line.trim().startsWith('•'))
+          .map((line: string) => line.replace(/^[-•]\s*/, '').trim())
           .filter(Boolean);
       }
     }
