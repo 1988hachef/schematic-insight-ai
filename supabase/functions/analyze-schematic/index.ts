@@ -74,27 +74,13 @@ serve(async (req) => {
       
       console.log('Validation response:', responseContent);
 
-      // Only reject if explicitly "NO" - accept anything else
+      // Only reject if explicitly "NO" - but to avoid blocking the user,
+      // we will just log a warning and continue with the analysis.
       if (responseContent.includes('NO') && !responseContent.includes('YES')) {
-        const errorMessages = {
-          'ar': 'عذراً، هذه الصورة لا تبدو كمخطط كهربائي أو تقني. يرجى تحميل صورة لمخطط كهربائي.',
-          'fr': 'Désolé, cette image ne semble pas être un schéma électrique ou technique. Veuillez télécharger une image de schéma électrique.',
-          'en': 'Sorry, this image does not appear to be an electrical or technical schematic. Please upload an electrical schematic image.'
-        };
-        
-        return new Response(
-          JSON.stringify({ 
-            error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'],
-            isValid: false 
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
+        console.warn('Image validation model returned NO (not a schematic), but proceeding with analysis anyway.');
       }
       
-      console.log('Image validation passed');
+      console.log('Image validation completed, proceeding with analysis');
     }
 
     // Step 2: Analyze all images together
