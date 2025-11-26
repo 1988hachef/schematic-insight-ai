@@ -133,10 +133,10 @@ export const VoiceAssistant = ({ analysisText, onAnalysisUpdate }: VoiceAssistan
       };
       const language = langMap[i18n.language] || 'ar';
 
-      // Connect to edge function WebSocket
-      const projectRef = import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0];
-      const wsUrl = `wss://${projectRef}.supabase.co/functions/v1/voice-assistant`;
+      // Connect to edge function WebSocket - use direct project ID
+      const wsUrl = `wss://mtwpfxyabldxhrxdynqp.supabase.co/functions/v1/voice-assistant`;
       
+      console.log('Connecting to:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {

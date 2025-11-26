@@ -112,7 +112,7 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
           console.error('Speech synthesis error:', error);
           setIsPlaying(false);
         }
-      }, 150);
+      }, 50);
     }
   };
 
