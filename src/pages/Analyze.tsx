@@ -204,10 +204,18 @@ const Analyze = () => {
       
       // Use pdf.js for proper PDF rendering
       const pdfjs = await import('pdfjs-dist');
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
       
-      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      // Set worker source with proper version
+      const pdfjsVersion = '4.10.38';
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
+      
+      console.log('Loading PDF with pdf.js...');
+      const loadingTask = pdfjs.getDocument({ 
+        data: arrayBuffer,
+        verbosity: 0
+      });
       const pdf = await loadingTask.promise;
+      console.log(`PDF loaded successfully: ${pageCount} pages`);
       
       // Extract images from each page by rendering with pdf.js
       for (let i = 1; i <= pageCount; i++) {

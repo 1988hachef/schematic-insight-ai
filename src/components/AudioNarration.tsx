@@ -79,40 +79,66 @@ export const AudioNarration = ({ text }: AudioNarrationProps) => {
       // Cancel any existing speech before starting new
       window.speechSynthesis.cancel();
       
-      // Create a fresh utterance with current settings
-      const freshUtterance = new SpeechSynthesisUtterance(text);
-      const langMap: Record<string, string> = {
-        'ar': 'ar-SA',
-        'fr': 'fr-FR',
-        'en': 'en-US',
-      };
-      freshUtterance.lang = langMap[i18n.language] || 'ar-SA';
-      freshUtterance.rate = rate;
-      freshUtterance.volume = isMuted ? 0 : 1;
-      freshUtterance.pitch = 1;
-      
-      freshUtterance.onend = () => {
-        setIsPlaying(false);
-      };
-      
-      freshUtterance.onerror = (event) => {
-        console.error('Speech error:', event);
-        setIsPlaying(false);
-      };
-      
-      // Use fresh utterance
-      setUtterance(freshUtterance);
-      
-      // Small delay to ensure clean state
-      setTimeout(() => {
-        try {
-          window.speechSynthesis.speak(freshUtterance);
+      // Wait for voices to load
+      const loadVoicesAndSpeak = () => {
+        // Create a fresh utterance with current settings
+        const freshUtterance = new SpeechSynthesisUtterance(text);
+        const langMap: Record<string, string> = {
+          'ar': 'ar-SA',
+          'fr': 'fr-FR',
+          'en': 'en-US',
+        };
+        freshUtterance.lang = langMap[i18n.language] || 'ar-SA';
+        freshUtterance.rate = rate;
+        freshUtterance.volume = isMuted ? 0 : 1;
+        freshUtterance.pitch = 1;
+        
+        // Get available voices
+        const voices = window.speechSynthesis.getVoices();
+        const voice = voices.find(v => v.lang.startsWith(freshUtterance.lang.split('-')[0]));
+        if (voice) {
+          freshUtterance.voice = voice;
+        }
+        
+        freshUtterance.onstart = () => {
+          console.log('Speech started');
           setIsPlaying(true);
+        };
+        
+        freshUtterance.onend = () => {
+          console.log('Speech ended');
+          setIsPlaying(false);
+        };
+        
+        freshUtterance.onerror = (event) => {
+          console.error('Speech error:', event);
+          setIsPlaying(false);
+        };
+        
+        // Use fresh utterance
+        setUtterance(freshUtterance);
+        
+        try {
+          console.log('Starting speech synthesis...');
+          window.speechSynthesis.speak(freshUtterance);
         } catch (error) {
           console.error('Speech synthesis error:', error);
           setIsPlaying(false);
         }
-      }, 50);
+      };
+
+      // Check if voices are loaded
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        loadVoicesAndSpeak();
+      } else {
+        // Wait for voices to load
+        window.speechSynthesis.onvoiceschanged = () => {
+          loadVoicesAndSpeak();
+        };
+        // Fallback in case onvoiceschanged doesn't fire
+        setTimeout(loadVoicesAndSpeak, 100);
+      }
     }
   };
 
