@@ -238,7 +238,12 @@ const AnalysisDetail = () => {
         </div>
       </div>
 
-      <ChatDialog open={isChatOpen} onOpenChange={setIsChatOpen} />
+      <ChatDialog 
+        open={isChatOpen} 
+        onOpenChange={setIsChatOpen}
+        images={images}
+        analysis={analysis}
+      />
     </div>
   );
 };

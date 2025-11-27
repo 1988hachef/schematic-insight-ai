@@ -429,39 +429,55 @@ const Analyze = () => {
               )}
               {analysis && (
                 <div className="mt-4 space-y-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-gold">{t('stepByStep')}</h3>
-                    <div className="flex gap-2">
+                  {/* Professional Action Menu */}
+                  <Card className="glass p-4 mb-6">
+                    <h3 className="text-xl font-bold text-gold mb-4 flex items-center gap-2">
+                      <span>⚡</span>
+                      {t('stepByStep')}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       <Button
                         variant="outline"
-                        size="sm"
-                        onClick={generateSummary}
-                        disabled={isAnalyzing}
-                      >
-                        {isAnalyzing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                        ملخص المخطط
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsChatOpen(true)}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        {t('chat')}
-                      </Button>
-                      <Button
-                        variant="premium"
-                        size="sm"
+                        className="justify-start h-auto py-3"
                         onClick={() => {
                           navigate('/analysis-detail', {
                             state: { analysis, summary, images: currentImages }
                           });
                         }}
                       >
-                        {t('detailedView')}
+                        <div className="flex flex-col items-start w-full">
+                          <span className="font-bold">📄 {t('detailedView')}</span>
+                          <span className="text-xs text-muted-foreground">عرض التحليل كاملاً</span>
+                        </div>
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        className="justify-start h-auto py-3"
+                        onClick={generateSummary}
+                        disabled={isAnalyzing}
+                      >
+                        <div className="flex flex-col items-start w-full">
+                          <span className="font-bold">
+                            {isAnalyzing ? <Loader2 className="w-4 h-4 inline mr-1 animate-spin" /> : '📋'}
+                            ملخص المخطط
+                          </span>
+                          <span className="text-xs text-muted-foreground">إنشاء ملخص سريع</span>
+                        </div>
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="justify-start h-auto py-3"
+                        onClick={() => setIsChatOpen(true)}
+                      >
+                        <div className="flex flex-col items-start w-full">
+                          <span className="font-bold">💬 {t('chat')}</span>
+                          <span className="text-xs text-muted-foreground">نقاش تفاعلي</span>
+                        </div>
                       </Button>
                     </div>
-                  </div>
+                  </Card>
 
                   {/* Summary Section */}
                   {summary && (
@@ -480,13 +496,14 @@ const Analyze = () => {
                     </Card>
                   )}
                   
-                  <AudioNarration text={analysis} />
-
-                  {/* Voice Assistant */}
-                  <VoiceAssistant 
-                    analysisText={analysis}
-                    onAnalysisUpdate={(updated) => setAnalysis(updated)}
-                  />
+                  {/* Additional Features in Professional Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <AudioNarration text={analysis} />
+                    <VoiceAssistant 
+                      analysisText={analysis}
+                      onAnalysisUpdate={(updated) => setAnalysis(updated)}
+                    />
+                  </div>
 
                   {/* Error Correction */}
                   <ErrorCorrection
@@ -547,7 +564,12 @@ const Analyze = () => {
         </motion.div>
       </div>
 
-      <ChatDialog open={isChatOpen} onOpenChange={setIsChatOpen} />
+      <ChatDialog 
+        open={isChatOpen} 
+        onOpenChange={setIsChatOpen}
+        images={currentImages}
+        analysis={analysis || undefined}
+      />
     </div>
   );
 };
