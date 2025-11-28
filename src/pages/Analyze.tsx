@@ -181,26 +181,13 @@ const Analyze = () => {
     }
 
     try {
-      const file = await pickPDF();
+      const files = await pickPDF();
       toast({
         title: t('success'),
-        description: 'ملف PDF محمل، جاري معالجته واستخراج الصور...',
+        description: `تم تحميل ${files.length} ملف PDF، جاري المعالجة...`,
       });
       
-      // Import pdf-lib dynamically
-      const { PDFDocument } = await import('pdf-lib');
-      
-      // Read PDF file
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      
-      const images: string[] = [];
-      const pageCount = pdfDoc.getPageCount();
-      
-      toast({
-        title: 'معالجة PDF',
-        description: `جاري معالجة ${pageCount} صفحة...`,
-      });
+      const allImages: string[] = [];
       
       // Use pdf.js for proper PDF rendering
       const pdfjs = await import('pdfjs-dist');
@@ -209,55 +196,74 @@ const Analyze = () => {
       const pdfjsVersion = '4.10.38';
       pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
       
-      console.log('Loading PDF with pdf.js...');
-      const loadingTask = pdfjs.getDocument({ 
-        data: arrayBuffer,
-        verbosity: 0
-      });
-      const pdf = await loadingTask.promise;
-      console.log(`PDF loaded successfully: ${pageCount} pages`);
-      
-      // Extract images from each page by rendering with pdf.js
-      for (let i = 1; i <= pageCount; i++) {
+      // Process each PDF file
+      for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+        const file = files[fileIndex];
+        
+        toast({
+          title: 'معالجة PDF',
+          description: `جاري معالجة الملف ${fileIndex + 1} من ${files.length}: ${file.name}`,
+        });
+        
         try {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 2.0 });
+          const arrayBuffer = await file.arrayBuffer();
           
-          // Create a canvas for rendering
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          if (!ctx) continue;
+          console.log(`Loading PDF file ${fileIndex + 1}: ${file.name}`);
+          const loadingTask = pdfjs.getDocument({ 
+            data: arrayBuffer,
+            verbosity: 0
+          });
+          const pdf = await loadingTask.promise;
+          const pageCount = pdf.numPages;
+          console.log(`PDF ${file.name} loaded: ${pageCount} pages`);
           
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          
-          // Render PDF page to canvas
-          await page.render({
-            canvasContext: ctx,
-            viewport: viewport,
-            canvas: canvas
-          }).promise;
-          
-          // Convert to data URL
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-          images.push(dataUrl);
-          
-          console.log(`Processed page ${i}/${pageCount}`);
-        } catch (pageError) {
-          console.error(`Error processing page ${i}:`, pageError);
+          // Extract images from each page
+          for (let i = 1; i <= pageCount; i++) {
+            try {
+              const page = await pdf.getPage(i);
+              const viewport = page.getViewport({ scale: 2.0 });
+              
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              if (!ctx) continue;
+              
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              
+              await page.render({
+                canvasContext: ctx,
+                viewport: viewport,
+                canvas: canvas
+              }).promise;
+              
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+              allImages.push(dataUrl);
+              
+              console.log(`Processed page ${i}/${pageCount} from ${file.name}`);
+            } catch (pageError) {
+              console.error(`Error processing page ${i} from ${file.name}:`, pageError);
+            }
+          }
+        } catch (fileError) {
+          console.error(`Error processing PDF file ${file.name}:`, fileError);
+          toast({
+            title: t('error'),
+            description: `فشل في معالجة الملف: ${file.name}`,
+            variant: 'destructive',
+          });
         }
       }
       
-      if (images.length > 0) {
+      if (allImages.length > 0) {
         toast({
           title: t('success'),
-          description: `تم استخراج ${images.length} صفحة من PDF، جاري التحليل...`,
+          description: `تم استخراج ${allImages.length} صفحة من ${files.length} ملف PDF، جاري التحليل...`,
         });
-        await analyzeImages(images);
+        await analyzeImages(allImages);
       } else {
         toast({
           title: t('error'),
-          description: 'لم يتم العثور على صور في ملف PDF',
+          description: 'لم يتم العثور على محتوى في ملفات PDF',
           variant: 'destructive',
         });
       }
@@ -266,7 +272,7 @@ const Analyze = () => {
       if (error instanceof Error && error.message !== 'No file selected') {
         toast({
           title: t('error'),
-          description: 'فشل في معالجة ملف PDF',
+          description: 'فشل في معالجة ملفات PDF',
           variant: 'destructive',
         });
       }

@@ -74,19 +74,20 @@ export const pickMultipleImages = async (): Promise<string[]> => {
   }
 };
 
-export const pickPDF = async (): Promise<File> => {
+export const pickPDF = async (): Promise<File[]> => {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/pdf';
+    input.multiple = true;
     
     input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) {
+      const files = (e.target as HTMLInputElement).files;
+      if (!files || files.length === 0) {
         reject(new Error('No file selected'));
         return;
       }
-      resolve(file);
+      resolve(Array.from(files));
     };
 
     input.click();
