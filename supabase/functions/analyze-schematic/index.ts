@@ -420,7 +420,7 @@ Always use:
       }),
     });
 
-    if (!analysisResponse.ok) {
+    if (!analysisResponse.no) {
       const errorText = await analysisResponse.text();
       console.error('Analysis API error:', analysisResponse.status, errorText);
       
