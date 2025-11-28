@@ -424,6 +424,22 @@ Always use:
       const errorText = await analysisResponse.text();
       console.error('Analysis API error:', analysisResponse.status, errorText);
       
+      // Handle payment required (out of credits)
+      if (analysisResponse.status === 402) {
+        const errorMessages = {
+          'ar': 'نفاد رصيد الاستخدام. يرجى إضافة رصيد من إعدادات مساحة العمل.',
+          'fr': 'Crédits épuisés. Veuillez ajouter des crédits dans les paramètres de l\'espace de travail.',
+          'en': 'Out of credits. Please add credits in workspace settings.'
+        };
+        return new Response(
+          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      
       // Handle rate limiting
       if (analysisResponse.status === 429) {
         const errorMessages = {
@@ -432,7 +448,7 @@ Always use:
           'en': 'Rate limit exceeded, please try again later'
         };
         return new Response(
-          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] }),
+          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
           {
             status: 429,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
