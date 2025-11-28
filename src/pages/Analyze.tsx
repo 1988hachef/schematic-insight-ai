@@ -192,8 +192,9 @@ const Analyze = () => {
       // Use pdf.js for proper PDF rendering
       const pdfjs = await import('pdfjs-dist');
       
-      // Set worker source with proper version
-      const pdfjsVersion = '4.10.38';
+      // CRITICAL: Use matching worker version - pdfjs-dist is v5.4.394
+      const pdfjsVersion = pdfjs.version || '5.4.394';
+      console.log('PDF.js version:', pdfjsVersion);
       pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
       
       // Process each PDF file
@@ -210,8 +211,10 @@ const Analyze = () => {
           
           console.log(`Loading PDF file ${fileIndex + 1}: ${file.name}`);
           const loadingTask = pdfjs.getDocument({ 
-            data: arrayBuffer,
-            verbosity: 0
+            data: new Uint8Array(arrayBuffer),
+            useWorkerFetch: false,
+            isEvalSupported: false,
+            useSystemFonts: true,
           });
           const pdf = await loadingTask.promise;
           const pageCount = pdf.numPages;
@@ -221,7 +224,7 @@ const Analyze = () => {
           for (let i = 1; i <= pageCount; i++) {
             try {
               const page = await pdf.getPage(i);
-              const viewport = page.getViewport({ scale: 2.0 });
+              const viewport = page.getViewport({ scale: 1.5 });
               
               const canvas = document.createElement('canvas');
               const ctx = canvas.getContext('2d');
@@ -230,11 +233,13 @@ const Analyze = () => {
               canvas.width = viewport.width;
               canvas.height = viewport.height;
               
-              await page.render({
+              const renderContext = {
                 canvasContext: ctx,
                 viewport: viewport,
-                canvas: canvas
-              }).promise;
+                canvas: canvas,
+              } as any;
+              
+              await page.render(renderContext).promise;
               
               const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
               allImages.push(dataUrl);
