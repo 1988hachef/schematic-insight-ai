@@ -402,70 +402,130 @@ Always use:
       };
     }
 
-    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+// مفتاحك الجديد هنا (غيّر النص بين القوسين بمفتاحك الحقيقي)
+const GEMINI_API_KEY = "AIzaSyD1xsZUeIYiapYegUBhsfZ0BuzFwEKAnNc";
+const analysisResponse = await fetch(
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts["ar"] },
+            { text: messagesContent }, // هذا يبقى كما هو
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 8192,
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
-          },
-          messagesContent
-        ],
-      }),
-    });
-
-    if (!analysisResponse.ok) {
-      const errorText = await analysisResponse.text();
-      console.error('Analysis API error:', analysisResponse.status, errorText);
-      
-      if (analysisResponse.status === 402) {
-        const errorMessages = {
-          'ar': 'نفاد رصيد الاستخدام. يرجى إضافة رصيد من إعدادات مساحة العمل.',
-          'fr': 'Crédits épuisés. Veuillez ajouter des crédits dans les paramètres de votre espace de travail.',
-          'en': 'Out of credits. Please add credits in workspace settings.'
-        };
-        return new Response(
-          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (analysisResponse.status === 429) {
-        const errorMessages = {
-          'ar': 'تم تجاوز حد الطلبات. يرجى المحاولة مرة أخرى بعد قليل.',
-          'fr': 'Limite de requêtes dépassée. Veuillez réessayer plus tard.',
-          'en': 'Rate limit exceeded. Please try again later.'
-        };
-        return new Response(
-          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`AI gateway error: ${analysisResponse.status}`);
-    }
-
-    const analysisData = await analysisResponse.json();
-    const analysis = analysisData.choices[0].message.content;
-
-    console.log('Analysis completed successfully');
-
-    return new Response(
-      JSON.stringify({ analysis }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Error in analyze-schematic function:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to analyze schematic' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_ONLY_HIGH",
+        },
+      ],
+    }),
   }
-});
+);
+
+if (!analysisResponse.ok) {
+  const error = await analysisResponse.text();
+  console.error("Gemini API Error:", analysisResponse.status, error);
+
+  // رسائل لطيفة بدون أي ذكر للدفع
+  const msg = {
+    ar: "حدث خطأ مؤقت في التحليل، جرب مرة أخرى خلال ثواني.",
+    en: "Temporary analysis error, please try again in a few seconds.",
+    fr: "Erreur temporaire d'analyse, veuillez réessayer dans quelques secondes."
+  };
+
+  return new Response(
+    JSON.stringify({ error: msg[language as keyof typeof msg] || msg.ar }),
+    { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+const analysisData = await analysisResponse.json();
+const analysis = analysisData.candidates[0].content.parts[0].text;
+
+return new Response(
+  JSON.stringify({ analysis }),
+  { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+);
+    
+   // const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    //  method: 'POST',
+    //  headers: {
+      //  'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+       // 'Content-Type': 'application/json',
+      },
+     // body: JSON.stringify({
+       // model: 'google/gemini-2.5-flash',
+       // messages: [
+          {
+          //  role: 'system',
+          //  content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
+        //  },
+         // messagesContent
+   ///     ],
+     // }),
+   /// });
+
+   // if (!analysisResponse.ok) {
+    //  const errorText = await analysisResponse.text();
+    //  console.error('Analysis API error:', analysisResponse.status, errorText);
+      
+     // if (analysisResponse.status === 402) {
+      //  const errorMessages = {
+         // 'ar': 'نفاد رصيد الاستخدام. يرجى إضافة رصيد من إعدادات مساحة العمل.',
+        //  'fr': 'Crédits épuisés. Veuillez ajouter des crédits dans les paramètres de votre espace de travail.',
+          //'en': 'Out of credits. Please add credits in workspace settings.'
+      //  };
+       // return new Response(
+         // JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
+         // { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+       // );
+      }
+     // 
+     // if (analysisResponse.status === 429) {
+       /// const errorMessages = {
+        //  'ar': 'تم تجاوز حد الطلبات. يرجى المحاولة مرة أخرى بعد قليل.',
+        ///  'fr': 'Limite de requêtes dépassée. Veuillez réessayer plus tard.',
+         // 'en': 'Rate limit exceeded. Please try again later.'
+      //  };
+        //return new Response(
+         // JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
+         // { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+       // );
+     // }
+      
+      //throw new Error(`AI gateway error: ${analysisResponse.status}`);
+    //}
+
+   // const analysisData = await analysisResponse.json();
+   // const analysis = analysisData.choices[0].message.content;
+
+    //console.log('Analysis completed successfully');
+
+    //return new Response(
+     // JSON.stringify({ analysis }),
+     // { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+   // );
+
+  //} catch (error) {
+  //  console.error('Error in analyze-schematic function:', error);
+   // return new Response(
+     // JSON.stringify({ error: 'Failed to analyze schematic' }),
+     // { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+   // );
+ /// }
+//});
