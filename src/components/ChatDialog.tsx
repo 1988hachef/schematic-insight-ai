@@ -117,6 +117,7 @@ export const ChatDialog = ({ open, onOpenChange, images, analysis }: ChatDialogP
             messages: [...messages, { role: 'user', content: contextMessage }],
             language: i18n.language,
             context: analysis ? { analysis, imageCount: images?.length } : undefined,
+            images: messages.length === 0 && images ? images.slice(0, 4) : undefined,
           }),
         }
       );

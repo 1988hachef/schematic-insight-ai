@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, language = 'ar' } = await req.json();
+    const { messages, language = 'ar', context, images } = await req.json();
     
     if (!messages || !Array.isArray(messages)) {
       throw new Error('Messages array is required');
@@ -23,7 +23,29 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Starting chat conversation...');
+    console.log('Starting chat conversation with context...');
+    console.log('Context provided:', context ? 'Yes' : 'No');
+    console.log('Images provided:', images?.length || 0);
+
+    // Build context-aware system prompt
+    let contextInfo = '';
+    if (context?.analysis) {
+      contextInfo = `
+
+السياق المتوفر:
+لديك تحليل لمخطط كهربائي تم رفعه مسبقاً. يمكن للمستخدم أن يسألك أسئلة محددة حول هذا المخطط.
+
+ملخص التحليل السابق:
+${context.analysis.substring(0, 2000)}${context.analysis.length > 2000 ? '...' : ''}
+
+عدد الصور المرفقة: ${context.imageCount || 0}
+
+عند الإجابة:
+- ارجع للتحليل السابق عند الحاجة
+- قدم توضيحات إضافية حسب طلب المستخدم
+- اشرح المفاهيم الكهربائية المتعلقة بالمخطط
+- أجب على الأسئلة المحددة حول المكونات والتوصيلات`;
+    }
 
     const systemPrompts = {
       'ar': `أنت مساعد ذكي متخصص في الهندسة الكهربائية والمخططات الكهربائية.
@@ -33,7 +55,8 @@ serve(async (req) => {
 2. إذا سُئلت عن مطور التطبيق، الإجابة هي: HACHEF OUSSAMA
 3. قدم إجابات واضحة ومفصلة ومنظمة
 4. استخدم الفقرات والعناوين لتنظيم إجاباتك
-5. إذا كان السؤال خارج مجال الكهرباء، أخبر المستخدم بأدب أنك متخصص فقط في المخططات الكهربائية`,
+5. إذا كان السؤال خارج مجال الكهرباء، أخبر المستخدم بأدب أنك متخصص فقط في المخططات الكهربائية
+6. عند الإجابة على أسئلة حول المخطط المرفوع، استخدم المعلومات من التحليل السابق${contextInfo}`,
 
       'fr': `Vous êtes un assistant intelligent spécialisé en génie électrique et schémas électriques.
 
@@ -42,7 +65,7 @@ Règles importantes:
 2. Si on vous demande qui a développé l'application, la réponse est: HACHEF OUSSAMA
 3. Fournissez des réponses claires, détaillées et organisées
 4. Utilisez des paragraphes et des titres pour organiser vos réponses
-5. Si la question est hors du domaine électrique, informez poliment l'utilisateur que vous êtes spécialisé uniquement dans les schémas électriques`,
+5. Si la question est hors du domaine électrique, informez poliment l'utilisateur que vous êtes spécialisé uniquement dans les schémas électriques${contextInfo}`,
 
       'en': `You are an intelligent assistant specialized in electrical engineering and electrical schematics.
 
@@ -51,8 +74,26 @@ Important rules:
 2. If asked about the app developer, the answer is: HACHEF OUSSAMA
 3. Provide clear, detailed, and organized answers
 4. Use paragraphs and headings to organize your responses
-5. If the question is outside the electrical domain, politely inform the user that you are specialized only in electrical schematics`
+5. If the question is outside the electrical domain, politely inform the user that you are specialized only in electrical schematics${contextInfo}`
     };
+
+    // Build messages with images if provided
+    const processedMessages = messages.map((msg: any, index: number) => {
+      // For the first user message, include images if available
+      if (msg.role === 'user' && index === 0 && images && images.length > 0) {
+        return {
+          role: 'user',
+          content: [
+            { type: 'text', text: msg.content },
+            ...images.slice(0, 4).map((img: string) => ({
+              type: 'image_url',
+              image_url: { url: img }
+            }))
+          ]
+        };
+      }
+      return msg;
+    });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -67,7 +108,7 @@ Important rules:
             role: 'system',
             content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
           },
-          ...messages
+          ...processedMessages
         ],
         stream: true,
       }),
