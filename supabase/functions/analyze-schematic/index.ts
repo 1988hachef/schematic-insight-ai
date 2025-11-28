@@ -402,4 +402,70 @@ Always use:
       };
     }
 
-    
+    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompts[language as keyof typeof systemPrompts] || systemPrompts['ar']
+          },
+          messagesContent
+        ],
+      }),
+    });
+
+    if (!analysisResponse.ok) {
+      const errorText = await analysisResponse.text();
+      console.error('Analysis API error:', analysisResponse.status, errorText);
+      
+      if (analysisResponse.status === 402) {
+        const errorMessages = {
+          'ar': 'نفاد رصيد الاستخدام. يرجى إضافة رصيد من إعدادات مساحة العمل.',
+          'fr': 'Crédits épuisés. Veuillez ajouter des crédits dans les paramètres de votre espace de travail.',
+          'en': 'Out of credits. Please add credits in workspace settings.'
+        };
+        return new Response(
+          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (analysisResponse.status === 429) {
+        const errorMessages = {
+          'ar': 'تم تجاوز حد الطلبات. يرجى المحاولة مرة أخرى بعد قليل.',
+          'fr': 'Limite de requêtes dépassée. Veuillez réessayer plus tard.',
+          'en': 'Rate limit exceeded. Please try again later.'
+        };
+        return new Response(
+          JSON.stringify({ error: errorMessages[language as keyof typeof errorMessages] || errorMessages['ar'] }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`AI gateway error: ${analysisResponse.status}`);
+    }
+
+    const analysisData = await analysisResponse.json();
+    const analysis = analysisData.choices[0].message.content;
+
+    console.log('Analysis completed successfully');
+
+    return new Response(
+      JSON.stringify({ analysis }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error in analyze-schematic function:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to analyze schematic' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
