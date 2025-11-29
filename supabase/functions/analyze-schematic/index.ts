@@ -143,36 +143,36 @@ serve(async (req) => {
 
 
 
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+//import "https://deno.land/x/xhr@0.1.0/mod.ts";
+//import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+//const corsHeaders = {
+  //'Access-Control-Allow-Origin': '*',
+  //'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+//};
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+//serve(async (req) => {
+  //if (req.method === 'OPTIONS') {
+    //return new Response(null, { headers: corsHeaders });
+  //}
 
-  try {
-    const { imageBase64, allImages, language = 'ar', mode = 'detailed', textToCorrect } = await req.json();
+  //try {
+    //const { imageBase64, allImages, language = 'ar', mode = 'detailed', textToCorrect } = await req.json();
     
-    if (!imageBase64) {
-      throw new Error('Image is required');
-    }
+    //if (!imageBase64) {
+      //throw new Error('Image is required');
+    //}
 
    // const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
    // if (!LOVABLE_API_KEY) {
      // throw new Error('LOVABLE_API_KEY is not configured');
    // }
 
-    const images = allImages && allImages.length > 0 ? allImages : [imageBase64];
-    console.log(`Starting schematic analysis for ${images.length} image(s)...`);
+   // const images = allImages && allImages.length > 0 ? allImages : [imageBase64];
+  //  console.log(`Starting schematic analysis for ${images.length} image(s)...`);
 
     // Step 1: Validate the first image
-    console.log('Starting image validation...');
+   // console.log('Starting image validation...');
     
     //const validationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     //  method: 'POST',
@@ -198,19 +198,19 @@ serve(async (req) => {
       }),
     });
 
-    if (validationResponse.ok) {
-      const validationData = await validationResponse.json();
-      const responseContent = validationData.choices[0].message.content.trim().toUpperCase();
-      console.log('Validation response:', responseContent);
-    }
-
+    //if (validationResponse.ok) {
+     // const validationData = await validationResponse.json();
+     // const responseContent = validationData.choices[0].message.content.trim().toUpperCase();
+     // console.log('Validation response:', responseContent);
+   // }
+//
     // Step 2: Analyze images
-    console.log(`Starting ${mode} analysis...`);
+   // console.log(`Starting ${mode} analysis...`);
 
-    const imageContents = images.map((img: string, index: number) => [
-      { type: 'text', text: images.length > 1 ? `صورة ${index + 1} من ${images.length}:` : 'المخطط الكهربائي:' },
-      { type: 'image_url', image_url: { url: img } }
-    ]).flat();
+   // const imageContents = images.map((img: string, index: number) => [
+      //{ type: 'text', text: images.length > 1 ? `صورة ${index + 1} من ${images.length}:` : 'المخطط الكهربائي:' },
+     // { type: 'image_url', image_url: { url: img } }
+  //  ]).flat();
 
     const systemPrompts: Record<string, string> = {
       'ar': mode === 'summary' ?
