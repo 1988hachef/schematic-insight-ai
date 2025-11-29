@@ -163,10 +163,10 @@ serve(async (req) => {
       throw new Error('Image is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
+   // const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+   // if (!LOVABLE_API_KEY) {
+     // throw new Error('LOVABLE_API_KEY is not configured');
+   // }
 
     const images = allImages && allImages.length > 0 ? allImages : [imageBase64];
     console.log(`Starting schematic analysis for ${images.length} image(s)...`);
@@ -175,11 +175,11 @@ serve(async (req) => {
     console.log('Starting image validation...');
     
     //const validationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+    //  method: 'POST',
+    //  headers: {
+        //'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        //'Content-Type': 'application/json',
+     // },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
@@ -270,67 +270,67 @@ serve(async (req) => {
       };
     }
 
-    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompts[language] || systemPrompts['ar'] },
-          messagesContent
-        ],
-      }),
-    });
+   // const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+     // method: 'POST',
+     /// headers: {
+       // 'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+       // 'Content-Type': 'application/json',
+     // },
+    //  body: JSON.stringify({
+        //model: 'google/gemini-2.5-flash',
+      //  messages: [
+      //    { role: 'system', content: systemPrompts[language] || systemPrompts['ar'] },
+        //  messagesContent
+     //   ],
+    ///  }),
+    //});
 
-    if (!analysisResponse.ok) {
-      const errorText = await analysisResponse.text();
-      console.error('Analysis API error:', analysisResponse.status, errorText);
+   // if (!analysisResponse.ok) {
+      //const errorText = await analysisResponse.text();
+    //  console.error('Analysis API error:', analysisResponse.status, errorText);
       
-      if (analysisResponse.status === 402) {
-        const errorMessages: Record<string, string> = {
-          'ar': 'نفاد رصيد الاستخدام. يرجى إضافة رصيد من إعدادات مساحة العمل.',
-          'fr': 'Crédits épuisés. Veuillez ajouter des crédits.',
-          'en': 'Out of credits. Please add credits in workspace settings.'
-        };
-        return new Response(
-          JSON.stringify({ error: errorMessages[language] || errorMessages['ar'] }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+     // if (analysisResponse.status === 402) {
+       // const errorMessages: Record<string, string> = {
+          //'ar': 'نفاد رصيد الاستخدام. يرجى إضافة رصيد من إعدادات مساحة العمل.',
+         // 'fr': 'Crédits épuisés. Veuillez ajouter des crédits.',
+         // 'en': 'Out of credits. Please add credits in workspace settings.'
+       // };
+       // return new Response(
+        //  JSON.stringify({ error: errorMessages[language] || errorMessages['ar'] }),
+         // { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      //  );
+    //  }
       
-      if (analysisResponse.status === 429) {
-        const errorMessages: Record<string, string> = {
-          'ar': 'تم تجاوز حد الطلبات. يرجى المحاولة لاحقاً.',
-          'fr': 'Limite dépassée. Réessayez plus tard.',
-          'en': 'Rate limit exceeded. Please try again later.'
-        };
-        return new Response(
-          JSON.stringify({ error: errorMessages[language] || errorMessages['ar'] }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+     // if (analysisResponse.status === 429) {
+       // const errorMessages: Record<string, string> = {
+       //   'ar': 'تم تجاوز حد الطلبات. يرجى المحاولة لاحقاً.',
+          //'fr': 'Limite dépassée. Réessayez plus tard.',
+          //'en': 'Rate limit exceeded. Please try again later.'
+       // };
+       // return new Response(
+        //  JSON.stringify({ error: errorMessages[language] || errorMessages['ar'] }),
+        //  { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+       // );
+    //  }
       
-      throw new Error(`AI gateway error: ${analysisResponse.status}`);
-    }
+     // throw new Error(`AI gateway error: ${analysisResponse.status}`);
+   // }
 
-    const analysisData = await analysisResponse.json();
-    const analysis = analysisData.choices[0].message.content;
+    //const analysisData = await analysisResponse.json();
+   // const analysis = analysisData.choices[0].message.content;
 
-    console.log('Analysis completed successfully');
+    //console.log('Analysis completed successfully');
 
-    return new Response(
-      JSON.stringify({ analysis }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+   // return new Response(
+    //  JSON.stringify({ analysis }),
+      //{ headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+   // );
 
-  } catch (error) {
-    console.error('Error in analyze-schematic function:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to analyze schematic' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+  //} catch (error) {
+    //console.error('Error in analyze-schematic function:', error);
+   // return new Response(
+   //   JSON.stringify({ error: 'Failed to analyze schematic' }),
+     // { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    //);
+  //}
+//});
